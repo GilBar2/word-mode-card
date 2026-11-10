@@ -25,9 +25,9 @@ document.querySelectorAll('#md .mode').forEach(b => b.onclick = () => { st.md = 
 $('th').onclick = () => { const l = $('wm').classList.toggle('lt'); $('th').textContent = l ? 'Dark' : 'Light'; };
 $('ap').onclick = () => {
   if (st.wl && !(st.n >= 10 && st.n <= 500)) { $('err').textContent = 'Enter a limit from 10 to 500'; return; }
-  const c = '/word-mode apply caveman=' + (st.cm ? 'on' : 'off') + ' wordlimit=' + (st.wl ? 'on' : 'off') + ' limit=' + st.n + ' strategy=' + st.s + ' mode=' + st.md;
-  $('cmd').textContent = c; $('fb').style.display = 'block';
-  try { if (typeof sendPrompt !== 'function') throw 0; sendPrompt(c); } catch (e) { $('fbm').textContent = 'Auto-send is not available here. Copy this and send it as a message:'; }
+  const c = 'word-mode apply caveman=' + (st.cm ? 'on' : 'off') + ' wordlimit=' + (st.wl ? 'on' : 'off') + ' limit=' + st.n + ' strategy=' + st.s + ' mode=' + st.md;
+  $('cmd').textContent = c;
+  try { if (typeof sendPrompt !== 'function') throw 0; sendPrompt(c); } catch (e) { $('fb').style.display = 'block'; $('fbm').textContent = 'Auto-send is not available here. Copy this and send it as a message:'; }
 };
 $('cp').onclick = () => {
   const c = $('cmd').textContent;
