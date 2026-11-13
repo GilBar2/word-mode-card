@@ -15,6 +15,7 @@
 .wm .mode{border:0.5px solid var(--l);background:var(--c);color:var(--i);border-radius:10px;padding:8px 4px;text-align:center;cursor:pointer;height:auto;display:block}
 .wm .mode b{display:block;font-size:13px;font-weight:500}.wm .mode span{display:block;font-size:11px;color:var(--m)}
 .wm .mode[aria-pressed="true"]{border-color:var(--a);background:var(--as)}.wm .mode[aria-pressed="true"] b{color:var(--a)}
+.wm .step{display:inline-flex;align-items:center;gap:4px}.wm .step button{width:30px;height:32px;padding:0;background:var(--k);color:var(--i);border:0.5px solid var(--l);border-radius:8px;cursor:pointer}
 .wm input[type=number]{width:76px;height:32px;background:var(--c);color:var(--i);border:0.5px solid var(--l);border-radius:8px;padding:0 8px}
 </style>
 <div class="wm" id="wm">
@@ -35,6 +36,15 @@
     </div>
     <div class="sub" id="err" style="color:#f09595"></div>
     <div class="sub" style="margin-top:6px">Middle aims for 80% and rewrites once. Hard rewrites anything over, up to 3 times.</div>
+  </div>
+  <div class="s">
+    <div class="r"><div><div style="font-weight:500">Agent cap</div><div class="sub">Max helper agents this chat may dispatch &middot; <span class="pill" id="acp"></span></div></div>
+      <button class="sw" role="switch" id="ac" aria-label="Agent cap"></button></div>
+    <div id="aco" style="display:flex;gap:6px;margin-top:10px;align-items:center">
+      <span class="step"><button id="acm" aria-label="Fewer agents">&minus;</button><input type="number" id="acn" min="1" max="99" step="1" aria-label="Agent cap"><button id="acpl" aria-label="More agents">+</button></span><span class="sub" style="margin:0">agents</span>
+    </div>
+    <div class="sub" id="ach" style="display:none"></div>
+    <div class="sub" id="err2" style="color:#f09595"></div>
   </div>
   <div class="s" style="border-bottom:0">
     <div style="font-weight:500">Permission mode <span class="sub">&middot; this chat, right away</span></div>
@@ -59,7 +69,8 @@
 <script>
 const S = __STATE__;
 const $ = id => document.getElementById(id);
-const st = { cm: S.caveman === 'on', wl: S.wordLimit === 'on', n: S.limit, s: S.strategy, md: S.mode };
+const st = { cm: S.caveman === 'on', wl: S.wordLimit === 'on', n: S.limit, s: S.strategy, md: S.mode, ac: !!(S.agentcap && S.agentcap.on), acn: (S.agentcap && S.agentcap.on && S.agentcap.cap) || 6 };
+const AC = S.agentcap || {};
 const names = { auto: 'auto', default: 'manual', acceptEdits: 'accept edits', plan: 'plan', bypassPermissions: 'bypass' };
 function draw() {
   $('cm').setAttribute('aria-checked', st.cm);
@@ -71,17 +82,29 @@ function draw() {
   $('n').value = st.n;
   document.querySelectorAll('#st button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === st.s));
   document.querySelectorAll('#md .mode').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === st.md));
-  $('ft').textContent = 'caveman ' + (st.cm ? 'on' : 'off') + ' · limit ' + (st.wl ? st.n + ' ' + st.s : 'off') + ' · mode ' + names[st.md];
+  $('ac').setAttribute('aria-checked', st.ac);
+  $('acp').textContent = st.ac ? (AC.on && AC.spent != null ? AC.spent + '/' + st.acn + ' used' : 'on') : 'off'; $('acp').className = 'pill' + (st.ac ? ' on' : '');
+  $('aco').style.opacity = st.ac ? 1 : .45;
+  $('acn').value = st.acn;
+  const o = AC.other;
+  $('ach').style.display = (!AC.on && o) ? 'block' : 'none';
+  if (!AC.on && o) $('ach').textContent = 'last run: ' + o.spent + '/' + o.cap + (o.date ? ', ' + o.date : '');
+  $('ft').textContent = 'caveman ' + (st.cm ? 'on' : 'off') + ' · limit ' + (st.wl ? st.n + ' ' + st.s : 'off') + ' · agent cap ' + (st.ac ? st.acn : 'off') + ' · mode ' + names[st.md];
 }
 $('cm').onclick = () => { st.cm = !st.cm; draw(); };
 $('wl').onclick = () => { st.wl = !st.wl; draw(); };
 $('n').oninput = () => { st.n = Math.round(Number($('n').value)); st.wl = true; $('err').textContent = ''; draw(); };
 document.querySelectorAll('#st button').forEach(b => b.onclick = () => { st.s = b.dataset.v; st.wl = true; draw(); });
 document.querySelectorAll('#md .mode').forEach(b => b.onclick = () => { st.md = b.dataset.v; draw(); });
+$('ac').onclick = () => { st.ac = !st.ac; $('err2').textContent = ''; draw(); };
+$('acn').oninput = () => { st.acn = Math.round(Number($('acn').value)); st.ac = true; draw(); };
+$('acm').onclick = () => { st.acn = Math.max(1, (st.acn || 6) - 1); st.ac = true; draw(); };
+$('acpl').onclick = () => { st.acn = Math.min(99, (st.acn || 6) + 1); st.ac = true; draw(); };
 $('th').onclick = () => { const l = $('wm').classList.toggle('lt'); $('th').textContent = l ? 'Dark' : 'Light'; };
 $('ap').onclick = () => {
   if (st.wl && !(st.n >= 10 && st.n <= 500)) { $('err').textContent = 'Enter a limit from 10 to 500'; return; }
-  const c = 'word-mode apply caveman=' + (st.cm ? 'on' : 'off') + ' wordlimit=' + (st.wl ? 'on' : 'off') + ' limit=' + st.n + ' strategy=' + st.s + ' mode=' + st.md;
+  if (st.ac && !(st.acn >= 1 && st.acn <= 99)) { $('err2').textContent = 'Enter an agent cap from 1 to 99'; return; }
+  const c = 'word-mode apply caveman=' + (st.cm ? 'on' : 'off') + ' wordlimit=' + (st.wl ? 'on' : 'off') + ' limit=' + st.n + ' strategy=' + st.s + ' mode=' + st.md + ' agentcap=' + (st.ac ? st.acn : 'off');
   $('cmd').textContent = c;
   try { if (typeof sendPrompt !== 'function') throw 0; sendPrompt(c); } catch (e) { $('fb').style.display = 'block'; $('fbm').textContent = 'Auto-send is not available here. Copy this and send it as a message:'; }
 };

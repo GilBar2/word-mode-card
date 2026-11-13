@@ -4,7 +4,8 @@ The in-chat card behind the `word-mode` Claude Code skill. One card switches thr
 
 1. Caveman: short, no-fluff replies (affects new chats).
 2. Word limit: the default limit for new chats, from 10 to 500 words, with the `middle` or `hard` strategy.
-3. Permission mode for the current chat: Auto, Manual, Accept edits, Plan, or Bypass.
+3. Agent cap: off, or a number (default 6) of helper agents this chat may dispatch.
+4. Permission mode for the current chat: Auto, Manual, Accept edits, Plan, or Bypass.
 
 ![word-mode card](docs/widget.png)
 
@@ -15,7 +16,7 @@ The screenshot is the dark theme. The card has a Light button.
 Pressing Apply sends one message, for example:
 
 ```text
-word-mode apply caveman=on wordlimit=on limit=100 strategy=middle mode=auto
+word-mode apply caveman=on wordlimit=on limit=100 strategy=middle mode=auto agentcap=off
 ```
 
 The skill reads that message and changes only what differs from the current state. If the chat cannot auto-send, the card shows the same text with a Copy button.
@@ -38,7 +39,7 @@ Each render sends only a small loader. The card code comes from jsDelivr, pinned
 <script src="https://cdn.jsdelivr.net/gh/GilBar2/word-mode-card@v1.1/card.js"></script>
 ```
 
-`WM_STATE` fields the card reads: `caveman`, `cavemanThisChat`, `wordLimit`, `limit`, `strategy`, and `mode`.
+`WM_STATE` fields the card reads: `caveman`, `cavemanThisChat`, `wordLimit`, `limit`, `strategy`, `mode`, and `agentcap` (`{on, cap, spent}`, or `{on:false, other:{cap, spent, date}}` for a run from another session, or `{on:false}`).
 
 ## Changing the card
 
