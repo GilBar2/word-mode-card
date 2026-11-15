@@ -35,7 +35,7 @@ Each render sends only a small loader. The card code comes from jsDelivr, pinned
 ```html
 <div id="wm-root"></div>
 <script>window.WM_STATE = {/* state */};</script>
-<script src="https://cdn.jsdelivr.net/gh/GilBar2/word-mode-card@v1.1/card.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/GilBar2/word-mode-card@v1.2/card.js"></script>
 ```
 
 `WM_STATE` fields the card reads: `caveman`, `cavemanThisChat`, `wordLimit`, `limit`, `strategy`, and `mode`.
